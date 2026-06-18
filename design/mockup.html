@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI-Treasurer Payroll Vault — CFO Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg:           #0D1526;
+      --surface:      #1A2540;
+      --surface2:     #232F4A;
+      --border:       #2D3F5E;
+      --indigo:       #4F46E5;
+      --indigo-light: #6366F1;
+      --indigo-glow:  rgba(79, 70, 229, 0.18);
+      --emerald:      #10B981;
+      --emerald-soft: rgba(16, 185, 129, 0.14);
+      --amber:        #F59E0B;
+      --amber-soft:   rgba(245, 158, 11, 0.14);
+      --red:          #EF4444;
+      --red-soft:     rgba(239, 68, 68, 0.12);
+      --text:         #EFF2F7;
+      --muted:        #7E8FA8;
+      --mono:         'Courier New', monospace;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    /* ── Topbar ──────────────────────────────────────────────────────────── */
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 13px 28px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      backdrop-filter: blur(8px);
+    }
+    .topbar-brand { display: flex; align-items: center; gap: 10px; }
+    .brand-icon {
+      width: 34px; height: 34px;
+      background: linear-gradient(135deg, #4F46E5 0%, #10B981 100%);
+      border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 19px;
+      box-shadow: 0 0 12px rgba(79,70,229,0.4);
+    }
+    .brand-name { font-size: 15px; font-weight: 700; letter-spacing: -0.4px; }
+    .brand-sub  { font-size: 11px; color: var(--muted); }
+    .topbar-right { display: flex; align-items: center; gap: 10px; }
+    .chain-badge {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 5px 13px;
+      font-size: 12px;
+      color: var(--muted);
+      display: flex; align-items: center; gap: 7px;
+    }
+    .chain-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--emerald);
+      box-shadow: 0 0 6px var(--emerald);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    .wallet-btn {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 5px 14px;
+      font-size: 12px;
+      color: var(--text);
+      cursor: pointer;
+      font-family: var(--mono);
+      letter-spacing: 0.3px;
+    }
+
+    /* ── Layout ──────────────────────────────────────────────────────────── */
+    .main { padding: 22px 28px; max-width: 1240px; margin: 0 auto; }
+
+    /* ── Stat Grid ───────────────────────────────────────────────────────── */
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px 20px;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.2s;
+    }
+    .stat-card:hover { border-color: var(--indigo-light); }
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(79,70,229,0.04) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    .stat-label {
+      font-size: 10.5px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.9px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    .stat-value {
+      font-size: 28px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      line-height: 1.1;
+      margin-bottom: 5px;
+      letter-spacing: -0.5px;
+    }
+    .stat-sub { font-size: 11px; color: var(--muted); }
+    .stat-value.green { color: var(--emerald); }
+    .stat-value.amber { color: var(--amber); }
+    .stat-value.indigo { color: var(--indigo-light); }
+
+    /* ── Allocation Bar ──────────────────────────────────────────────────── */
+    .allocation-section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px 22px;
+      margin-bottom: 18px;
+    }
+    .alloc-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+    .section-title { font-size: 13px; font-weight: 600; }
+    .alloc-bar {
+      height: 11px;
+      border-radius: 6px;
+      background: var(--surface2);
+      overflow: hidden;
+      display: flex;
+      margin-bottom: 12px;
+    }
+    .alloc-seg-a {
+      background: linear-gradient(90deg, #4F46E5, #6366F1);
+      width: 70%;
+      transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .alloc-seg-b {
+      background: linear-gradient(90deg, #10B981, #34D399);
+      width: 30%;
+      transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .alloc-legend { display: flex; gap: 24px; flex-wrap: wrap; }
+    .legend-item {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 12.5px; color: var(--muted);
+    }
+    .legend-dot { width: 10px; height: 10px; border-radius: 3px; }
+    .legend-dot.a { background: var(--indigo); }
+    .legend-dot.b { background: var(--emerald); }
+    .legend-pct { font-weight: 700; color: var(--text); }
+    .legend-apy { font-size: 11px; color: var(--emerald); font-weight: 600; }
+
+    /* ── Action Row ──────────────────────────────────────────────────────── */
+    .action-row {
+      display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;
+    }
+    .btn {
+      padding: 10px 20px;
+      border-radius: 9px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      display: flex; align-items: center; gap: 7px;
+      transition: transform 0.1s, opacity 0.15s, box-shadow 0.15s;
+      white-space: nowrap;
+    }
+    .btn:hover { opacity: 0.88; transform: translateY(-1px); }
+    .btn:active { transform: translateY(0); }
+    .btn-primary {
+      background: linear-gradient(135deg, #4F46E5, #6366F1);
+      color: white;
+      box-shadow: 0 4px 14px rgba(79,70,229,0.35);
+    }
+    .btn-primary:hover { box-shadow: 0 6px 20px rgba(79,70,229,0.45); }
+    .btn-secondary {
+      background: linear-gradient(135deg, #10B981, #059669);
+      color: white;
+      box-shadow: 0 4px 14px rgba(16,185,129,0.3);
+    }
+    .btn-ghost {
+      background: var(--surface2);
+      color: var(--muted);
+      border: 1px solid var(--border);
+    }
+    .btn-ghost:hover { color: var(--text); border-color: var(--indigo-light); }
+    .btn-icon { font-size: 15px; }
+
+    /* ── Execution Overlay ───────────────────────────────────────────────── */
+    .exec-overlay {
+      background: var(--surface);
+      border: 1px solid var(--indigo);
+      border-radius: 14px;
+      padding: 20px 24px;
+      margin-bottom: 20px;
+      box-shadow: 0 0 0 3px var(--indigo-glow), 0 8px 32px rgba(0,0,0,0.3);
+      display: none; /* hidden by default; toggle via JS / class */
+    }
+    .exec-overlay.visible { display: block; }
+    .exec-title {
+      font-size: 13px; font-weight: 600;
+      margin-bottom: 14px;
+      display: flex; align-items: center; gap: 8px;
+      color: var(--indigo-light);
+    }
+    .exec-step {
+      display: flex; align-items: center; gap: 10px;
+      padding: 6px 0; font-size: 12.5px;
+    }
+    .step-icon { font-size: 15px; min-width: 22px; }
+    .step-label { color: var(--text); }
+    .step-label.muted { color: var(--muted); }
+    .step-hash {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--indigo-light);
+      margin-left: 6px;
+      background: var(--indigo-glow);
+      padding: 1px 6px;
+      border-radius: 4px;
+    }
+    .progress-bar {
+      height: 3px;
+      background: var(--surface2);
+      border-radius: 2px;
+      margin-top: 16px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--indigo), var(--indigo-light));
+      border-radius: 2px;
+      width: 60%;
+      animation: shimmer 1.6s ease-in-out infinite;
+    }
+    @keyframes shimmer {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    .spinner { animation: spin 1.2s linear infinite; display: inline-block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Two-col ─────────────────────────────────────────────────────────── */
+    .two-col {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 18px;
+    }
+
+    /* ── Panel ───────────────────────────────────────────────────────────── */
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+    }
+    .panel-header {
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      background: linear-gradient(90deg, rgba(79,70,229,0.06) 0%, transparent 80%);
+    }
+    .panel-title { font-size: 13px; font-weight: 600; }
+    .panel-badge {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 2px 10px;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    /* ── Memo Card ───────────────────────────────────────────────────────── */
+    .memo-card {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      transition: background 0.15s;
+    }
+    .memo-card:last-child { border-bottom: none; }
+    .memo-card:hover { background: rgba(79,70,229,0.04); }
+    .memo-meta {
+      display: flex; align-items: flex-start; gap: 10px; margin-bottom: 12px;
+    }
+    .memo-avatar {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--indigo), var(--emerald));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px;
+      flex-shrink: 0;
+      margin-top: 1px;
+      box-shadow: 0 0 8px rgba(79,70,229,0.4);
+    }
+    .memo-author { font-size: 12px; font-weight: 600; margin-bottom: 1px; }
+    .memo-timestamp { font-size: 11px; color: var(--muted); }
+    .memo-chain-link {
+      font-size: 11px;
+      color: var(--indigo-light);
+      text-decoration: none;
+      margin-left: auto;
+      font-family: var(--mono);
+      white-space: nowrap;
+      padding: 2px 8px;
+      background: var(--indigo-glow);
+      border-radius: 5px;
+      border: 1px solid rgba(99,102,241,0.3);
+      transition: background 0.15s;
+    }
+    .memo-chain-link:hover { background: rgba(99,102,241,0.25); }
+    .memo-text {
+      font-family: Georgia, 'Times New Roman', serif;
+      font-size: 13.5px;
+      line-height: 1.7;
+      color: #C8D4E8;
+      background: rgba(13, 21, 38, 0.7);
+      border-left: 3px solid var(--indigo);
+      padding: 13px 16px;
+      border-radius: 0 8px 8px 0;
+      margin-bottom: 12px;
+    }
+    .memo-mini-bar {
+      display: flex; gap: 8px; align-items: center; margin-bottom: 10px;
+    }
+    .mini-bar-inner {
+      height: 6px; border-radius: 3px; overflow: hidden;
+      display: flex; flex: 1; background: var(--surface2);
+    }
+    .mini-seg-a { background: var(--indigo); width: 70%; }
+    .mini-seg-b { background: var(--emerald); width: 30%; }
+    .mini-label { font-size: 11px; color: var(--muted); white-space: nowrap; }
+    .memo-footer { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .status-chip {
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .chip-green { background: var(--emerald-soft); color: var(--emerald); }
+    .chip-amber { background: var(--amber-soft); color: var(--amber); }
+    .chip-muted { background: var(--surface2); color: var(--muted); border: 1px solid var(--border); }
+    .memo-proof-link {
+      font-size: 11px;
+      color: var(--indigo-light);
+      text-decoration: none;
+      margin-left: auto;
+      opacity: 0.85;
+    }
+    .memo-proof-link:hover { opacity: 1; text-decoration: underline; }
+
+    .memo-card.collapsed .memo-text,
+    .memo-card.collapsed .memo-mini-bar,
+    .memo-card.collapsed .memo-footer { display: none; }
+    .memo-collapsed-preview {
+      font-size: 12px; color: var(--muted); font-style: italic; line-height: 1.5;
+    }
+    .memo-expand-link {
+      color: var(--indigo-light); margin-left: 6px; font-size: 11px;
+      text-decoration: none; font-style: normal;
+    }
+    .memo-expand-link:hover { text-decoration: underline; }
+
+    /* ── Employee Table ──────────────────────────────────────────────────── */
+    .employee-table { width: 100%; border-collapse: collapse; }
+    .employee-table th {
+      font-size: 10.5px; color: var(--muted); text-transform: uppercase;
+      letter-spacing: 0.7px; padding: 10px 20px; text-align: left;
+      border-bottom: 1px solid var(--border); font-weight: 600;
+    }
+    .employee-table td {
+      padding: 12px 20px; border-bottom: 1px solid var(--border); font-size: 13px;
+    }
+    .employee-table tr:last-child td { border-bottom: none; }
+    .employee-table tbody tr { transition: background 0.15s; }
+    .employee-table tbody tr:hover { background: rgba(79,70,229,0.04); }
+    .emp-name { font-weight: 500; margin-bottom: 2px; }
+    .emp-addr { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+    .salary-amount { font-variant-numeric: tabular-nums; font-weight: 700; color: var(--text); }
+    .goplus-footer {
+      padding: 11px 20px; border-top: 1px solid var(--border);
+      font-size: 12px; color: var(--emerald); display: flex;
+      align-items: center; gap: 6px; font-weight: 500;
+    }
+
+    /* ── Footer ──────────────────────────────────────────────────────────── */
+    .page-footer {
+      margin-top: 32px; padding-top: 20px; border-top: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      font-size: 11.5px; color: var(--muted);
+    }
+    .footer-links { display: flex; gap: 20px; }
+    .footer-links a { color: var(--muted); text-decoration: none; transition: color 0.15s; }
+    .footer-links a:hover { color: var(--indigo-light); }
+
+    /* ── Toast ───────────────────────────────────────────────────────────── */
+    .toast {
+      position: fixed; bottom: 24px; right: 24px;
+      background: var(--surface); border: 1px solid var(--emerald);
+      border-radius: 12px; padding: 14px 18px;
+      font-size: 12.5px; display: flex; align-items: center; gap: 12px;
+      box-shadow: 0 6px 28px rgba(0,0,0,0.45), 0 0 0 1px rgba(16,185,129,0.15);
+      z-index: 200;
+      opacity: 0; transform: translateY(8px);
+      transition: opacity 0.3s, transform 0.3s;
+    }
+    .toast.visible { opacity: 1; transform: translateY(0); }
+    .toast-icon { font-size: 20px; }
+    .toast-text { color: var(--text); font-weight: 500; }
+    .toast-hash { font-family: var(--mono); font-size: 11px; color: var(--emerald); margin-top: 2px; }
+
+    /* ── Demo controls (visible only in mockup) ──────────────────────────── */
+    .demo-bar {
+      background: rgba(79,70,229,0.1);
+      border: 1px dashed rgba(99,102,241,0.4);
+      border-radius: 10px;
+      padding: 10px 16px;
+      margin-bottom: 16px;
+      display: flex; align-items: center; gap: 12px;
+      font-size: 12px; color: var(--muted);
+    }
+    .demo-bar span { font-weight: 600; color: var(--indigo-light); }
+    .demo-btn {
+      background: var(--indigo);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 5px 12px;
+      font-size: 11.5px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .demo-btn.off { background: var(--surface2); color: var(--muted); border: 1px solid var(--border); }
+
+    /* ── Responsive ──────────────────────────────────────────────────────── */
+    @media (max-width: 960px) {
+      .stat-grid { grid-template-columns: repeat(2, 1fr); }
+      .two-col { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 560px) {
+      .main { padding: 14px 16px; }
+      .topbar { padding: 12px 16px; }
+      .stat-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<nav class="topbar">
+  <div class="topbar-brand">
+    <div class="brand-icon">🏦</div>
+    <div>
+      <div class="brand-name">AI-Treasurer</div>
+      <div class="brand-sub">Payroll Vault</div>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <div class="chain-badge">
+      <span class="chain-dot"></span>
+      Base Sepolia
+    </div>
+    <div class="wallet-btn">0x1a2b…ef90 ▾</div>
+  </div>
+</nav>
+
+<div class="main">
+
+  <!-- DEMO CONTROLS (mockup only) -->
+  <div class="demo-bar">
+    <span>Mockup controls:</span>
+    <button class="demo-btn" onclick="toggleExec()">Toggle Agent Running</button>
+    <button class="demo-btn off" onclick="showToast()">Show Tx Toast</button>
+    <span style="margin-left:auto; font-size:11px;">Not in production UI</span>
+  </div>
+
+  <!-- STAT CARDS -->
+  <div class="stat-grid">
+    <div class="stat-card">
+      <div class="stat-label">Total Pool</div>
+      <div class="stat-value">$50,000</div>
+      <div class="stat-sub">USDC deposited</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Yield Earned</div>
+      <div class="stat-value green">+$247.33</div>
+      <div class="stat-sub">this cycle · 14 days</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Blended APY</div>
+      <div class="stat-value indigo">8.7%</div>
+      <div class="stat-sub">70% @ 9.1% + 30% @ 7.4%</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Next Payday</div>
+      <div class="stat-value amber">14 days</div>
+      <div class="stat-sub">$12,700 USDC scheduled</div>
+    </div>
+  </div>
+
+  <!-- ALLOCATION BAR -->
+  <div class="allocation-section">
+    <div class="alloc-header">
+      <span class="section-title">Current Allocation</span>
+      <span class="chip-muted status-chip">Rebalanced 2h ago by AI agent · memo #3</span>
+    </div>
+    <div class="alloc-bar">
+      <div class="alloc-seg-a"></div>
+      <div class="alloc-seg-b"></div>
+    </div>
+    <div class="alloc-legend">
+      <div class="legend-item">
+        <div class="legend-dot a"></div>
+        Source A (Aave-style USDC)
+        <span class="legend-pct">70%</span>
+        <span class="legend-apy">↑ 9.1% APY</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot b"></div>
+        Source B (Morpho-style USDC)
+        <span class="legend-pct">30%</span>
+        <span class="legend-apy">↑ 7.4% APY</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ACTION ROW -->
+  <div class="action-row">
+    <button class="btn btn-primary" onclick="toggleExec()">
+      <span class="btn-icon">⚡</span>
+      Run AI Rebalance
+    </button>
+    <button class="btn btn-secondary">
+      <span class="btn-icon">💸</span>
+      Execute Payday
+    </button>
+    <button class="btn btn-ghost">
+      <span class="btn-icon">👤</span>
+      Add Employee
+    </button>
+    <button class="btn btn-ghost">
+      <span class="btn-icon">💰</span>
+      Deposit USDC
+    </button>
+  </div>
+
+  <!-- LIVE EXECUTION PANEL (hidden by default) -->
+  <div class="exec-overlay" id="exec-overlay">
+    <div class="exec-title">
+      <span class="spinner">⚙️</span>
+      AI Agent — Rebalance Cycle Running
+    </div>
+    <div class="exec-step">
+      <span class="step-icon">✅</span>
+      <span class="step-label">Vault state read — $50,000 USDC total assets</span>
+    </div>
+    <div class="exec-step">
+      <span class="step-icon">✅</span>
+      <span class="step-label">x402 yield data purchased — $0.001 USDC paid</span>
+      <span class="step-hash">0x7a3c…d291</span>
+    </div>
+    <div class="exec-step">
+      <span class="step-icon">✅</span>
+      <span class="step-label">CFO memo generated by <strong>claude-sonnet-4-6</strong></span>
+    </div>
+    <div class="exec-step">
+      <span class="step-icon"><span class="spinner">⏳</span></span>
+      <span class="step-label">Committing memo on-chain (emitMemo)…</span>
+      <span class="step-hash">pending…</span>
+    </div>
+    <div class="exec-step">
+      <span class="step-icon" style="color:var(--muted);">○</span>
+      <span class="step-label muted">Rebalance tx — awaiting memo confirmation</span>
+    </div>
+    <div class="progress-bar"><div class="progress-fill"></div></div>
+  </div>
+
+  <!-- TWO-COLUMN -->
+  <div class="two-col">
+
+    <!-- CFO MEMO FEED -->
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">🤖 AI CFO Memo Feed</span>
+        <span class="panel-badge">3 memos on-chain</span>
+      </div>
+
+      <!-- MEMO 1 — LATEST, EXPANDED -->
+      <div class="memo-card">
+        <div class="memo-meta">
+          <div class="memo-avatar">🤖</div>
+          <div style="flex:1; min-width:0;">
+            <div class="memo-author">AI Treasurer Agent</div>
+            <div class="memo-timestamp">2026-06-18 · 09:14 UTC</div>
+          </div>
+          <a href="#" class="memo-chain-link">0xabc…def1 ↗</a>
+        </div>
+        <div class="memo-text">
+          "Source A currently yields <strong style="color:#10B981;">9.1% APY</strong> versus Source B at 7.4%.
+          I recommend a <strong>70/30 split</strong> to maximize yield while maintaining a 30% liquidity
+          buffer ahead of payday in 14 days. Estimated daily yield on $50,000: <strong style="color:#10B981;">$12.47</strong>.
+          Gas cost for this rebalance: $0.003 — covered by yield in under 45 minutes.
+          GoPlus security check on both protocol addresses returned no malicious flags.
+          <br><br>
+          <strong>Recommendation: PROCEED with rebalance.</strong>"
+        </div>
+        <div class="memo-mini-bar">
+          <span class="mini-label">A 70%</span>
+          <div class="mini-bar-inner">
+            <div class="mini-seg-a"></div>
+            <div class="mini-seg-b"></div>
+          </div>
+          <span class="mini-label">B 30%</span>
+        </div>
+        <div class="memo-footer">
+          <span class="status-chip chip-green">✅ Approved by agent</span>
+          <a href="#" class="memo-proof-link">View on-chain proof ↗</a>
+        </div>
+      </div>
+
+      <!-- MEMO 2 — COLLAPSED -->
+      <div class="memo-card collapsed">
+        <div class="memo-meta">
+          <div class="memo-avatar">🤖</div>
+          <div style="flex:1; min-width:0;">
+            <div class="memo-author">AI Treasurer Agent</div>
+            <div class="memo-timestamp">2026-06-11 · 09:02 UTC</div>
+          </div>
+          <a href="#" class="memo-chain-link">0x789…a312 ↗</a>
+        </div>
+        <div class="memo-collapsed-preview">
+          "Source A APY dropped from 11.2% to 9.1% due to increased liquidity inflows. Reducing allocation from 80% to 70%…"
+          <a href="#" class="memo-expand-link" onclick="this.closest('.memo-card').classList.remove('collapsed'); return false;">Read full memo ↗</a>
+        </div>
+      </div>
+
+      <!-- MEMO 3 — COLLAPSED (PAYDAY) -->
+      <div class="memo-card collapsed">
+        <div class="memo-meta">
+          <div class="memo-avatar">🤖</div>
+          <div style="flex:1; min-width:0;">
+            <div class="memo-author">AI Treasurer Agent</div>
+            <div class="memo-timestamp">2026-06-04 · 08:55 UTC · <span style="color:var(--amber);">PAYDAY</span></div>
+          </div>
+          <a href="#" class="memo-chain-link">0x234…bc01 ↗</a>
+        </div>
+        <div class="memo-collapsed-preview">
+          "Payday memo: withdrawing $12,700 from yield sources. GoPlus: all 3 employee addresses verified clean…"
+          <a href="#" class="memo-expand-link" onclick="this.closest('.memo-card').classList.remove('collapsed'); return false;">Read full memo ↗</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- EMPLOYEE TABLE -->
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">👥 Employees</span>
+        <span class="panel-badge">3 active · next payday 14d</span>
+      </div>
+      <table class="employee-table">
+        <thead>
+          <tr>
+            <th>Employee</th>
+            <th>Salary / mo</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <div class="emp-name">Alice Chen</div>
+              <div class="emp-addr">0xA1b2…C3d4</div>
+            </td>
+            <td><span class="salary-amount">$5,000</span></td>
+            <td><span class="status-chip chip-green">✅ Scheduled</span></td>
+          </tr>
+          <tr>
+            <td>
+              <div class="emp-name">Bob Martinez</div>
+              <div class="emp-addr">0xE5f6…G7h8</div>
+            </td>
+            <td><span class="salary-amount">$3,500</span></td>
+            <td><span class="status-chip chip-green">✅ Scheduled</span></td>
+          </tr>
+          <tr>
+            <td>
+              <div class="emp-name">Carol Kim</div>
+              <div class="emp-addr">0xI9j0…K1l2</div>
+            </td>
+            <td><span class="salary-amount">$4,200</span></td>
+            <td><span class="status-chip chip-green">✅ Scheduled</span></td>
+          </tr>
+          <tr>
+            <td>
+              <div class="emp-name" style="color:var(--muted);">+ Add employee</div>
+              <div class="emp-addr">enter wallet address</div>
+            </td>
+            <td></td>
+            <td>
+              <button class="btn btn-ghost" style="padding:5px 12px;font-size:11.5px;">+ Add</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="goplus-footer">
+        🛡️ GoPlus: All addresses verified clean · last check 9m ago
+      </div>
+    </div>
+
+  </div>
+
+  <!-- FOOTER -->
+  <div class="page-footer">
+    <div>AI-Treasurer Payroll Vault · Base Sepolia (chain 84532) · 2026</div>
+    <div class="footer-links">
+      <a href="#" id="contract-link">Contract ↗</a>
+      <a href="https://github.com/you/ai-treasurer-vault" target="_blank" rel="noopener">GitHub ↗</a>
+      <a href="https://x402.org" target="_blank" rel="noopener">x402 ↗</a>
+    </div>
+  </div>
+
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <span class="toast-icon">✅</span>
+  <div>
+    <div class="toast-text">Memo committed on-chain</div>
+    <div class="toast-hash">0x7f3a1b…d9c2e4 · <a href="#" style="color:var(--emerald);">BaseScan ↗</a></div>
+  </div>
+</div>
+
+<script>
+  // Toggle execution overlay
+  function toggleExec() {
+    const overlay = document.getElementById('exec-overlay');
+    overlay.classList.toggle('visible');
+  }
+
+  // Show toast briefly
+  let toastTimer;
+  function showToast() {
+    const toast = document.getElementById('toast');
+    toast.classList.add('visible');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove('visible'), 4000);
+  }
+
+  // Auto-show toast after 1.2s (demo effect)
+  setTimeout(showToast, 1200);
+</script>
+</body>
+</html>

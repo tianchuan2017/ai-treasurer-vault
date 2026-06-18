@@ -1,0 +1,25 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg:       #0F172A;
+  --surface:  #1E293B;
+  --surface2: #263348;
+  --border:   #334155;
+  --indigo:   #4F46E5;
+  --emerald:  #10B981;
+  --amber:    #F59E0B;
+  --text:     #F8FAFC;
+  --muted:    #94A3B8;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text);
+}
+
+/* Subtle scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }

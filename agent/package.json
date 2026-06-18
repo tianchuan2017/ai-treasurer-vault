@@ -1,0 +1,33 @@
+{
+  "name": "ai-treasurer-agent",
+  "version": "1.0.0",
+  "description": "AI agent that manages the PayrollVault — perceives yield data, writes CFO memos, executes rebalances and payroll",
+  "main": "dist/agent.js",
+  "scripts": {
+    "build": "tsc",
+    "agent:cycle": "ts-node src/agent.ts --mode rebalance",
+    "agent:payday": "ts-node src/agent.ts --mode payday",
+    "agent:demo": "ts-node src/agent.ts --mode demo",
+    "server": "ts-node src/server.ts",
+    "dev": "concurrently \"npm run server\" \"npm run agent:demo\""
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "0.104.2",
+    "@x402/express": "2.15.0",
+    "@x402/fetch": "2.15.0",
+    "@x402/evm": "2.15.0",
+    "@x402/core": "2.15.0",
+    "cors": "2.8.5",
+    "express": "4.21.2",
+    "viem": "2.52.2",
+    "dotenv": "16.5.0"
+  },
+  "devDependencies": {
+    "@types/cors": "2.8.17",
+    "@types/express": "4.17.21",
+    "@types/node": "20.17.57",
+    "concurrently": "9.1.2",
+    "ts-node": "10.9.2",
+    "typescript": "5.8.3"
+  }
+}

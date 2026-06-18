@@ -1,0 +1,17 @@
+node_modules/
+.env
+.env.local
+.env.*.local
+.next/
+dist/
+build/
+out/
+cache/
+cache_forge/
+broadcast/
+contracts/lib/
+*.log
+.DS_Store
+coverage/
+.turbo/
+*.tsbuildinfo
