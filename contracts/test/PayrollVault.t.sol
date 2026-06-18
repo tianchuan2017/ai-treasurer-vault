@@ -141,17 +141,18 @@ contract PayrollVaultTest is Test {
         vault.deposit(DEPOSIT_AMOUNT, owner);
         vm.stopPrank();
 
-        // Build allocation arrays: 70% to A, 30% to B
+        // Build allocation arrays: 56% to A, 24% to B (total 80% — the maximum allowed)
         address[] memory sources = new address[](2);
         uint256[] memory allocs  = new uint256[](2);
-        sources[0] = sourceA; allocs[0] = 35_000 * 1e6; // 70%
-        sources[1] = sourceB; allocs[1] = 15_000 * 1e6; // 30%
+        sources[0] = sourceA; allocs[0] = 28_000 * 1e6; // 56%
+        sources[1] = sourceB; allocs[1] = 12_000 * 1e6; // 24%
+        // Total = 40,000 = exactly 80% of 50,000 → should PASS the cap check
 
         vm.prank(agent);
         vault.rebalance(sources, allocs);
 
-        assertEq(vault.getSourceBalance(sourceA), 35_000 * 1e6, "Source A balance mismatch");
-        assertEq(vault.getSourceBalance(sourceB), 15_000 * 1e6, "Source B balance mismatch");
+        assertEq(vault.getSourceBalance(sourceA), 28_000 * 1e6, "Source A balance mismatch");
+        assertEq(vault.getSourceBalance(sourceB), 12_000 * 1e6, "Source B balance mismatch");
     }
 
     // ─── Test: Rebalance rejects unapproved source ───────────────────────────

@@ -30,9 +30,9 @@ import { baseSepolia } from 'viem/chains';
 import { wrapFetchWithPayment } from '@x402/fetch';
 import { x402Client } from '@x402/core/client';
 import { ExactEvmScheme } from '@x402/evm/exact/client';
-import { PAYROLL_VAULT_ABI, PAYROLL_SCHEDULER_ABI } from './abis';
-import { checkAllAddresses } from './security';
-import { BASE_SEPOLIA_CHAIN_ID } from './chains';
+import { PAYROLL_VAULT_ABI, PAYROLL_SCHEDULER_ABI } from './abis.js';
+import { checkAllAddresses } from './security.js';
+import { BASE_SEPOLIA_CHAIN_ID } from './chains.js';
 
 // ─── Config ──────────────────────────────────────────────────────────────────
 
@@ -63,55 +63,53 @@ const walletClient = createWalletClient({
   transport: http(process.env.BASE_RPC_URL ?? 'https://sepolia.base.org'),
 });
 
-// x402-aware fetch (v2 API) — auto-pays $0.001 USDC when server returns 402.
-// ExactEvmScheme expects a signer with .address + .signTypedData.
-// We build a thin adapter from our viem account + walletClient.
+// x402-aware fetch — auto-pays $0.001 USDC when server returns 402.
+// ExactEvmScheme wraps our viem walletClient as a signer.
 const x402Signer = new ExactEvmScheme({
-  address: account.address,
-  signTypedData: (args: Parameters<typeof walletClient.signTypedData>[0]) =>
-    walletClient.signTypedData(args),
+  address:        account.address,
+  signTypedData:  (args: Parameters<typeof walletClient.signTypedData>[0]) =>
+                    walletClient.signTypedData(args as Parameters<typeof walletClient.signTypedData>[0]),
   signTransaction: (args: Parameters<typeof walletClient.signTransaction>[0]) =>
-    walletClient.signTransaction(args),
+                    walletClient.signTransaction(args as Parameters<typeof walletClient.signTransaction>[0]),
 });
+
 const x402PayClient = new x402Client().register('eip155:84532', x402Signer);
-const fetchWithPay = wrapFetchWithPayment(fetch, x402PayClient);
+const fetchWithPay  = wrapFetchWithPayment(fetch as typeof globalThis.fetch, x402PayClient);
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
-  // baseURL can be overridden for Alibaba Cloud DashScope compatibility:
-  // baseURL: 'https://dashscope-intl.aliyuncs.com/compatible-mode/v1',
 });
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 interface YieldSource {
-  id: string;
-  name: string;
+  id:      string;
+  name:    string;
   address: string;
-  aprPct: number;
+  aprPct:  number;
   tvlUSDC: number;
-  risk: string;
+  risk:    string;
   audited: boolean;
 }
 
 interface YieldData {
-  timestamp: number;
-  sources: YieldSource[];
+  timestamp:       number;
+  sources:         YieldSource[];
   gasEstimateUSDC: number;
 }
 
 interface VaultState {
   totalAssetsUSDC: number;
-  memoCount: bigint;
-  yieldSources: readonly `0x${string}`[];
+  memoCount:       bigint;
+  yieldSources:    readonly `0x${string}`[];
 }
 
 interface CFOMemoDecision {
-  memoText: string;
-  allocations: Array<{ sourceAddress: string; amountUSDC: number; rationale: string }>;
+  memoText:       string;
+  allocations:    Array<{ sourceAddress: string; amountUSDC: number; rationale: string }>;
   recommendation: 'PROCEED' | 'HOLD' | 'REVIEW';
-  confidence: number; // 0-1
-  risks: string[];
+  confidence:     number; // 0–1
+  risks:          string[];
 }
 
 // ─── Phase 1: PERCEIVE ───────────────────────────────────────────────────────
@@ -123,18 +121,18 @@ async function perceiveVaultState(): Promise<VaultState> {
 
   const [totalAssetsRaw, memoCount, yieldSources] = await Promise.all([
     publicClient.readContract({
-      address: VAULT_ADDRESS,
-      abi: PAYROLL_VAULT_ABI,
+      address:      VAULT_ADDRESS,
+      abi:          PAYROLL_VAULT_ABI,
       functionName: 'totalAssets',
     }),
     publicClient.readContract({
-      address: VAULT_ADDRESS,
-      abi: PAYROLL_VAULT_ABI,
+      address:      VAULT_ADDRESS,
+      abi:          PAYROLL_VAULT_ABI,
       functionName: 'memoCount',
     }),
     publicClient.readContract({
-      address: VAULT_ADDRESS,
-      abi: PAYROLL_VAULT_ABI,
+      address:      VAULT_ADDRESS,
+      abi:          PAYROLL_VAULT_ABI,
       functionName: 'getYieldSources',
     }),
   ]);
@@ -142,7 +140,7 @@ async function perceiveVaultState(): Promise<VaultState> {
   const totalAssetsUSDC = Number(totalAssetsRaw) / 1e6;
 
   console.log(`[PERCEIVE] Total assets: $${totalAssetsUSDC.toLocaleString()} USDC`);
-  console.log(`[PERCEIVE] Memo count: ${memoCount}`);
+  console.log(`[PERCEIVE] Memo count:   ${memoCount}`);
   console.log(`[PERCEIVE] Yield sources: ${yieldSources.length}`);
 
   return { totalAssetsUSDC, memoCount, yieldSources };
@@ -152,7 +150,6 @@ async function fetchYieldData(): Promise<YieldData> {
   console.log('[PERCEIVE] Fetching yield data via x402-gated API...');
   console.log(`[PERCEIVE] Endpoint: ${YIELD_SERVER_URL}/api/yields`);
 
-  // agent/src/agent.ts:61 — wrapFetchWithPayment auto-pays $0.001 USDC on 402
   const response = await fetchWithPay(`${YIELD_SERVER_URL}/api/yields`);
 
   if (!response.ok) {
@@ -194,8 +191,8 @@ IMPORTANT: Your output must be valid JSON matching this schema:
 }`;
 
 async function generateCFOMemo(
-  vaultState: VaultState,
-  yieldData: YieldData,
+  vaultState:    VaultState,
+  yieldData:     YieldData,
   schedulerInfo?: { nextPayday: Date; totalPayroll: number; employeeCount: number }
 ): Promise<CFOMemoDecision> {
   console.log('[REASON] Calling LLM to generate CFO memo...');
@@ -228,24 +225,23 @@ CONSTRAINTS:
 - Prioritize liquidity preservation 14 days before payday
 `;
 
-  // agent/src/agent.ts:88 — LLM call
   const message = await anthropic.messages.create({
-    model: LLM_MODEL,
+    model:      LLM_MODEL,
     max_tokens: 1024,
     messages: [
       {
-        role: 'user',
+        role:    'user',
         content: `${CFO_MEMO_PROMPT}\n\nCurrent context:\n${context}\n\nOutput JSON only:`,
       },
     ],
   });
 
   const rawText = message.content
-    .filter(block => block.type === 'text')
+    .filter((block): block is Anthropic.TextBlock => block.type === 'text')
     .map(block => block.text)
     .join('');
 
-  // Parse JSON — strip markdown code fences if present
+  // Strip markdown code fences if present
   const jsonText = rawText
     .replace(/^```(?:json)?\n?/m, '')
     .replace(/\n?```$/m, '')
@@ -275,15 +271,14 @@ async function commitMemoOnChain(memo: CFOMemoDecision): Promise<`0x${string}`> 
   const memoHash = keccak256(toHex(memo.memoText));
 
   const txHash = await walletClient.writeContract({
-    address: VAULT_ADDRESS,
-    abi: PAYROLL_VAULT_ABI,
+    address:      VAULT_ADDRESS,
+    abi:          PAYROLL_VAULT_ABI,
     functionName: 'emitMemo',
-    args: [memoHash, memo.memoText],
+    args:         [memoHash, memo.memoText],
   });
 
   console.log(`[ACT] emitMemo tx: ${txHash}`);
 
-  // Wait for confirmation
   const receipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
   console.log(`[ACT] Memo confirmed in block ${receipt.blockNumber}`);
 
@@ -291,7 +286,7 @@ async function commitMemoOnChain(memo: CFOMemoDecision): Promise<`0x${string}`> 
 }
 
 async function executeRebalance(
-  memo: CFOMemoDecision,
+  memo:         CFOMemoDecision,
   yieldSources: readonly `0x${string}`[]
 ): Promise<`0x${string}` | null> {
   if (memo.recommendation !== 'PROCEED') {
@@ -303,9 +298,8 @@ async function executeRebalance(
 
   if (!VAULT_ADDRESS) throw new Error('PAYROLL_VAULT_ADDRESS not set');
 
-  // Build allocation arrays — filter to only approved sources
   const sources: `0x${string}`[] = [];
-  const allocations: bigint[] = [];
+  const allocations: bigint[]    = [];
 
   for (const allocation of memo.allocations) {
     const sourceAddr = allocation.sourceAddress.toLowerCase() as `0x${string}`;
@@ -328,10 +322,10 @@ async function executeRebalance(
   }
 
   const txHash = await walletClient.writeContract({
-    address: VAULT_ADDRESS,
-    abi: PAYROLL_VAULT_ABI,
+    address:      VAULT_ADDRESS,
+    abi:          PAYROLL_VAULT_ABI,
     functionName: 'rebalance',
-    args: [sources, allocations],
+    args:         [sources, allocations],
   });
 
   console.log(`[ACT] rebalance tx: ${txHash}`);
@@ -347,10 +341,9 @@ async function executePayrollCycle(): Promise<void> {
 
   if (!SCHEDULER_ADDRESS) throw new Error('PAYROLL_SCHEDULER_ADDRESS not set');
 
-  // 1. Check how many employees and their addresses
   const empCount = await publicClient.readContract({
-    address: SCHEDULER_ADDRESS,
-    abi: PAYROLL_SCHEDULER_ABI,
+    address:      SCHEDULER_ADDRESS,
+    abi:          PAYROLL_SCHEDULER_ABI,
     functionName: 'employeeCount',
   });
 
@@ -359,57 +352,53 @@ async function executePayrollCycle(): Promise<void> {
   const addresses: `0x${string}`[] = [];
   for (let i = 0n; i < empCount; i++) {
     const emp = await publicClient.readContract({
-      address: SCHEDULER_ADDRESS,
-      abi: PAYROLL_SCHEDULER_ABI,
+      address:      SCHEDULER_ADDRESS,
+      abi:          PAYROLL_SCHEDULER_ABI,
       functionName: 'getEmployee',
-      args: [i],
+      args:         [i],
     });
     if (emp.active) {
       addresses.push(emp.wallet);
     }
   }
 
-  // 2. GoPlus security check for all employee addresses
-  // agent/src/agent.ts:142 — GoPlus pre-flight
   console.log('[ACT] Running GoPlus security checks...');
   const securityResults = await checkAllAddresses(addresses, CHAIN_ID);
 
-  // 3. Set security cleared flags on-chain
   for (let i = 0n; i < empCount; i++) {
     const emp = await publicClient.readContract({
-      address: SCHEDULER_ADDRESS,
-      abi: PAYROLL_SCHEDULER_ABI,
+      address:      SCHEDULER_ADDRESS,
+      abi:          PAYROLL_SCHEDULER_ABI,
       functionName: 'getEmployee',
-      args: [i],
+      args:         [i],
     });
 
     if (!emp.active) continue;
 
     const secResult = securityResults.get(emp.wallet.toLowerCase());
-    const cleared = secResult?.safe ?? false;
+    const cleared   = secResult?.safe ?? false;
 
     const flagTx = await walletClient.writeContract({
-      address: SCHEDULER_ADDRESS,
-      abi: PAYROLL_SCHEDULER_ABI,
+      address:      SCHEDULER_ADDRESS,
+      abi:          PAYROLL_SCHEDULER_ABI,
       functionName: 'setSecurityCleared',
-      args: [i, cleared],
+      args:         [i, cleared],
     });
 
     await publicClient.waitForTransactionReceipt({ hash: flagTx });
     console.log(`[ACT] Employee ${i} (${emp.wallet.slice(0, 10)}…) → cleared: ${cleared}`);
   }
 
-  // 4. Execute payroll
   const isPaydayDue = await publicClient.readContract({
-    address: SCHEDULER_ADDRESS,
-    abi: PAYROLL_SCHEDULER_ABI,
+    address:      SCHEDULER_ADDRESS,
+    abi:          PAYROLL_SCHEDULER_ABI,
     functionName: 'isPaydayDue',
   });
 
   if (!isPaydayDue) {
     const nextPayday = await publicClient.readContract({
-      address: SCHEDULER_ADDRESS,
-      abi: PAYROLL_SCHEDULER_ABI,
+      address:      SCHEDULER_ADDRESS,
+      abi:          PAYROLL_SCHEDULER_ABI,
       functionName: 'nextPayday',
     });
     const nextDate = new Date(Number(nextPayday) * 1000);
@@ -418,8 +407,8 @@ async function executePayrollCycle(): Promise<void> {
   }
 
   const payrollTx = await walletClient.writeContract({
-    address: SCHEDULER_ADDRESS,
-    abi: PAYROLL_SCHEDULER_ABI,
+    address:      SCHEDULER_ADDRESS,
+    abi:          PAYROLL_SCHEDULER_ABI,
     functionName: 'executePayroll',
   });
 
@@ -429,7 +418,7 @@ async function executePayrollCycle(): Promise<void> {
   console.log(`[ACT] Payroll executed in block ${receipt.blockNumber}`);
 
   console.log('\n[DONE] Payroll cycle complete!');
-  console.log(`  Tx: ${payrollTx}`);
+  console.log(`  Tx:       ${payrollTx}`);
   console.log(`  Explorer: https://sepolia.basescan.org/tx/${payrollTx}`);
 }
 
@@ -438,20 +427,17 @@ async function executePayrollCycle(): Promise<void> {
 export async function runRebalanceCycle(): Promise<void> {
   console.log('\n=== AI-Treasurer Rebalance Cycle ===');
   console.log(`Agent wallet: ${account.address}`);
-  console.log(`Vault: ${VAULT_ADDRESS}`);
+  console.log(`Vault:        ${VAULT_ADDRESS}`);
   console.log('');
 
-  // PERCEIVE
   const [vaultState, yieldData] = await Promise.all([
     perceiveVaultState(),
     fetchYieldData(),
   ]);
 
-  // REASON
   const memo = await generateCFOMemo(vaultState, yieldData);
 
-  // ACT
-  const memoTxHash = await commitMemoOnChain(memo);
+  const memoTxHash      = await commitMemoOnChain(memo);
   const rebalanceTxHash = await executeRebalance(memo, vaultState.yieldSources);
 
   console.log('\n=== Rebalance Cycle Complete ===');
@@ -463,7 +449,7 @@ export async function runRebalanceCycle(): Promise<void> {
 export async function runPaydayCycle(): Promise<void> {
   console.log('\n=== AI-Treasurer Payday Cycle ===');
   console.log(`Agent wallet: ${account.address}`);
-  console.log(`Scheduler: ${SCHEDULER_ADDRESS}`);
+  console.log(`Scheduler:    ${SCHEDULER_ADDRESS}`);
   console.log('');
 
   await executePayrollCycle();
@@ -484,13 +470,13 @@ export async function runDemoMode(): Promise<void> {
 // ─── CLI Entry Point ─────────────────────────────────────────────────────────
 
 async function main() {
-  const args = process.argv.slice(2);
+  const args    = process.argv.slice(2);
   const modeArg = args.find(a => a.startsWith('--mode=') || a === '--mode');
-  let mode = 'rebalance';
+  let mode      = 'rebalance';
 
   if (modeArg) {
     if (modeArg.includes('=')) {
-      mode = modeArg.split('=')[1];
+      mode = modeArg.split('=')[1]!;
     } else {
       const idx = args.indexOf('--mode');
       mode = args[idx + 1] ?? 'rebalance';

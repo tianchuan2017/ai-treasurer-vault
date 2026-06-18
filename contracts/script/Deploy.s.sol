@@ -27,10 +27,14 @@ contract Deploy is Script {
     // 30-day pay cycle in seconds
     uint256 constant CYCLE_LENGTH = 30 days;
 
+    // Checksummed mock yield source addresses for the demo
+    address constant MOCK_SOURCE_A = 0xa11ce0000000000000000000000000000000000A;
+    address constant MOCK_SOURCE_B = 0xb0B0000000000000000000000000000000000B0B;
+
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
-        address deployer = vm.addr(deployerPrivateKey);
-        address agentAddress = vm.envOr("AGENT_ADDRESS", deployer); // default: deployer is agent for testing
+        address deployer           = vm.addr(deployerPrivateKey);
+        address agentAddress       = vm.envOr("AGENT_ADDRESS", deployer);
 
         // Pick USDC address based on chain
         address usdcAddress = block.chainid == 8453
@@ -38,11 +42,10 @@ contract Deploy is Script {
             : USDC_BASE_SEPOLIA;
 
         console.log("=== AI-Treasurer Payroll Vault Deploy ===");
-        console.log("Deployer:      ", deployer);
-        console.log("Agent address: ", agentAddress);
-        console.log("USDC address:  ", usdcAddress);
-        console.log("Chain ID:      ", block.chainid);
-        console.log("Cycle length:  ", CYCLE_LENGTH, "seconds");
+        console.log("Deployer:     ", deployer);
+        console.log("Agent:        ", agentAddress);
+        console.log("USDC:         ", usdcAddress);
+        console.log("Chain ID:     ", block.chainid);
         console.log("=========================================");
 
         vm.startBroadcast(deployerPrivateKey);
@@ -54,7 +57,7 @@ contract Deploy is Script {
             deployer     // owner = deployer (CFO / multisig in production)
         );
 
-        console.log("PayrollVault deployed at:", address(vault));
+        console.log("PayrollVault:     ", address(vault));
 
         // 2. Deploy PayrollScheduler (references the vault)
         PayrollScheduler scheduler = new PayrollScheduler(
@@ -62,38 +65,28 @@ contract Deploy is Script {
             usdcAddress,
             agentAddress,
             CYCLE_LENGTH,
-            deployer     // owner
+            deployer
         );
 
-        console.log("PayrollScheduler deployed at:", address(scheduler));
+        console.log("PayrollScheduler: ", address(scheduler));
 
-        // 3. Add scheduler as an approved caller on the vault
-        //    (in this demo the agent wallet directly calls the vault,
-        //     but if the scheduler needs to call rebalance in future, add it here)
-        // vault.setAgent(address(scheduler)); // uncomment to route through scheduler
+        // 3. Add two mock yield sources for the demo
+        vault.addYieldSource(MOCK_SOURCE_A);
+        vault.addYieldSource(MOCK_SOURCE_B);
 
-        // 4. Add two mock yield sources for the demo
-        //    (placeholder addresses — in production these are real ERC-4626 vault addresses)
-        address mockSourceA = address(0xA11CE0000000000000000000000000000000000A);
-        address mockSourceB = address(0xB0B0000000000000000000000000000000000B0B);
-        vault.addYieldSource(mockSourceA);
-        vault.addYieldSource(mockSourceB);
-
-        console.log("Yield source A added:", mockSourceA);
-        console.log("Yield source B added:", mockSourceB);
+        console.log("Yield source A:   ", MOCK_SOURCE_A);
+        console.log("Yield source B:   ", MOCK_SOURCE_B);
 
         vm.stopBroadcast();
 
         console.log("");
         console.log("=== NEXT STEPS ===");
-        console.log("1. Copy these addresses into your .env:");
+        console.log("1. Copy addresses into .env:");
         console.log("   PAYROLL_VAULT_ADDRESS=", address(vault));
         console.log("   PAYROLL_SCHEDULER_ADDRESS=", address(scheduler));
-        console.log("2. Approve USDC spend for the vault:");
-        console.log("   cast send", usdcAddress, "\"approve(address,uint256)\"", address(vault), "50000000000");
-        console.log("3. Deposit USDC:");
-        console.log("   cast send", address(vault), "\"deposit(uint256,address)\"", "50000000000", deployer);
+        console.log("2. Approve USDC: cast send <USDC> approve(address,uint256) <VAULT> 50000000000");
+        console.log("3. Deposit USDC: cast send <VAULT> deposit(uint256,address) 50000000000 <DEPLOYER>");
         console.log("4. Add employees via PayrollScheduler.addEmployee()");
-        console.log("5. Run agent: cd ../agent && npm run agent:cycle");
+        console.log("5. Run agent: npm --prefix agent run agent:cycle");
     }
 }

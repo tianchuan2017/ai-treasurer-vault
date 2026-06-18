@@ -2,3 +2,5 @@ out/
 cache/
 broadcast/*/31337/
 broadcast/*/84532/dry-run/
+# Keep real testnet broadcasts in version control for reference
+# broadcast/*/84532/run-latest.json

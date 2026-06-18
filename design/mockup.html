@@ -6,7 +6,7 @@
   <title>AI-Treasurer Payroll Vault — CFO Dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -23,10 +23,9 @@
       --amber:        #F59E0B;
       --amber-soft:   rgba(245, 158, 11, 0.14);
       --red:          #EF4444;
-      --red-soft:     rgba(239, 68, 68, 0.12);
       --text:         #EFF2F7;
       --muted:        #7E8FA8;
-      --mono:         'Courier New', monospace;
+      --mono:         'JetBrains Mono', 'Courier New', monospace;
     }
 
     body {
@@ -49,7 +48,6 @@
       position: sticky;
       top: 0;
       z-index: 20;
-      backdrop-filter: blur(8px);
     }
     .topbar-brand { display: flex; align-items: center; gap: 10px; }
     .brand-icon {
@@ -57,8 +55,8 @@
       background: linear-gradient(135deg, #4F46E5 0%, #10B981 100%);
       border-radius: 9px;
       display: flex; align-items: center; justify-content: center;
-      font-size: 19px;
-      box-shadow: 0 0 12px rgba(79,70,229,0.4);
+      font-size: 18px;
+      box-shadow: 0 0 14px rgba(79,70,229,0.45);
     }
     .brand-name { font-size: 15px; font-weight: 700; letter-spacing: -0.4px; }
     .brand-sub  { font-size: 11px; color: var(--muted); }
@@ -79,10 +77,7 @@
       box-shadow: 0 0 6px var(--emerald);
       animation: pulse 2s infinite;
     }
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.5; }
-    }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
     .wallet-btn {
       background: var(--surface2);
       border: 1px solid var(--border);
@@ -98,12 +93,39 @@
     /* ── Layout ──────────────────────────────────────────────────────────── */
     .main { padding: 22px 28px; max-width: 1240px; margin: 0 auto; }
 
+    /* ── Demo controls (mockup only) ─────────────────────────────────────── */
+    .demo-bar {
+      background: rgba(79,70,229,0.09);
+      border: 1px dashed rgba(99,102,241,0.35);
+      border-radius: 10px;
+      padding: 10px 16px;
+      margin-bottom: 16px;
+      display: flex; align-items: center; gap: 12px;
+      font-size: 12px; color: var(--muted);
+      flex-wrap: wrap;
+    }
+    .demo-bar .label { font-weight: 600; color: var(--indigo-light); }
+    .demo-btn {
+      background: var(--indigo);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 5px 12px;
+      font-size: 11.5px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    .demo-btn:hover { opacity: 0.85; }
+    .demo-btn.off { background: var(--surface2); color: var(--muted); border: 1px solid var(--border); }
+    .demo-bar .note { margin-left: auto; font-size: 11px; }
+
     /* ── Stat Grid ───────────────────────────────────────────────────────── */
     .stat-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 14px;
-      margin-bottom: 18px;
+      margin-bottom: 16px;
     }
     .stat-card {
       background: var(--surface);
@@ -112,35 +134,28 @@
       padding: 18px 20px;
       position: relative;
       overflow: hidden;
-      transition: border-color 0.2s;
+      transition: border-color 0.2s, transform 0.15s;
     }
-    .stat-card:hover { border-color: var(--indigo-light); }
+    .stat-card:hover { border-color: var(--indigo-light); transform: translateY(-1px); }
     .stat-card::before {
       content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(135deg, rgba(79,70,229,0.04) 0%, transparent 60%);
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(79,70,229,0.05) 0%, transparent 60%);
       pointer-events: none;
     }
     .stat-label {
-      font-size: 10.5px;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.9px;
-      font-weight: 600;
-      margin-bottom: 8px;
+      font-size: 10.5px; color: var(--muted); text-transform: uppercase;
+      letter-spacing: 0.9px; font-weight: 600; margin-bottom: 8px;
     }
     .stat-value {
-      font-size: 28px;
-      font-weight: 700;
+      font-size: 28px; font-weight: 700;
       font-variant-numeric: tabular-nums;
-      line-height: 1.1;
-      margin-bottom: 5px;
+      line-height: 1.1; margin-bottom: 5px;
       letter-spacing: -0.5px;
     }
     .stat-sub { font-size: 11px; color: var(--muted); }
-    .stat-value.green { color: var(--emerald); }
-    .stat-value.amber { color: var(--amber); }
+    .stat-value.green  { color: var(--emerald); }
+    .stat-value.amber  { color: var(--amber); }
     .stat-value.indigo { color: var(--indigo-light); }
 
     /* ── Allocation Bar ──────────────────────────────────────────────────── */
@@ -149,22 +164,22 @@
       border: 1px solid var(--border);
       border-radius: 14px;
       padding: 18px 22px;
-      margin-bottom: 18px;
+      margin-bottom: 16px;
     }
     .alloc-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+      display: flex; justify-content: space-between; align-items: center;
       margin-bottom: 14px;
     }
     .section-title { font-size: 13px; font-weight: 600; }
+    .badge-small {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 999px; padding: 3px 11px;
+      font-size: 11px; color: var(--muted);
+    }
     .alloc-bar {
-      height: 11px;
-      border-radius: 6px;
-      background: var(--surface2);
-      overflow: hidden;
-      display: flex;
-      margin-bottom: 12px;
+      height: 11px; border-radius: 6px;
+      background: var(--surface2); overflow: hidden;
+      display: flex; margin-bottom: 12px;
     }
     .alloc-seg-a {
       background: linear-gradient(90deg, #4F46E5, #6366F1);
@@ -177,32 +192,23 @@
       transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
     }
     .alloc-legend { display: flex; gap: 24px; flex-wrap: wrap; }
-    .legend-item {
-      display: flex; align-items: center; gap: 8px;
-      font-size: 12.5px; color: var(--muted);
-    }
+    .legend-item { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--muted); }
     .legend-dot { width: 10px; height: 10px; border-radius: 3px; }
     .legend-dot.a { background: var(--indigo); }
     .legend-dot.b { background: var(--emerald); }
-    .legend-pct { font-weight: 700; color: var(--text); }
-    .legend-apy { font-size: 11px; color: var(--emerald); font-weight: 600; }
+    .legend-pct   { font-weight: 700; color: var(--text); }
+    .legend-apy   { font-size: 11px; color: var(--emerald); font-weight: 600; }
 
     /* ── Action Row ──────────────────────────────────────────────────────── */
-    .action-row {
-      display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;
-    }
+    .action-row { display: flex; gap: 10px; margin-bottom: 18px; flex-wrap: wrap; }
     .btn {
-      padding: 10px 20px;
-      border-radius: 9px;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      border: none;
+      padding: 10px 20px; border-radius: 9px;
+      font-size: 13px; font-weight: 600; cursor: pointer; border: none;
       display: flex; align-items: center; gap: 7px;
       transition: transform 0.1s, opacity 0.15s, box-shadow 0.15s;
       white-space: nowrap;
     }
-    .btn:hover { opacity: 0.88; transform: translateY(-1px); }
+    .btn:hover  { opacity: 0.88; transform: translateY(-1px); }
     .btn:active { transform: translateY(0); }
     .btn-primary {
       background: linear-gradient(135deg, #4F46E5, #6366F1);
@@ -210,14 +216,13 @@
       box-shadow: 0 4px 14px rgba(79,70,229,0.35);
     }
     .btn-primary:hover { box-shadow: 0 6px 20px rgba(79,70,229,0.45); }
-    .btn-secondary {
+    .btn-success {
       background: linear-gradient(135deg, #10B981, #059669);
       color: white;
       box-shadow: 0 4px 14px rgba(16,185,129,0.3);
     }
     .btn-ghost {
-      background: var(--surface2);
-      color: var(--muted);
+      background: var(--surface2); color: var(--muted);
       border: 1px solid var(--border);
     }
     .btn-ghost:hover { color: var(--text); border-color: var(--indigo-light); }
@@ -229,51 +234,46 @@
       border: 1px solid var(--indigo);
       border-radius: 14px;
       padding: 20px 24px;
-      margin-bottom: 20px;
+      margin-bottom: 18px;
       box-shadow: 0 0 0 3px var(--indigo-glow), 0 8px 32px rgba(0,0,0,0.3);
-      display: none; /* hidden by default; toggle via JS / class */
+      display: none;
     }
     .exec-overlay.visible { display: block; }
     .exec-title {
-      font-size: 13px; font-weight: 600;
-      margin-bottom: 14px;
+      font-size: 13px; font-weight: 600; margin-bottom: 14px;
       display: flex; align-items: center; gap: 8px;
       color: var(--indigo-light);
     }
+    .exec-steps { display: flex; flex-direction: column; gap: 2px; }
     .exec-step {
       display: flex; align-items: center; gap: 10px;
       padding: 6px 0; font-size: 12.5px;
+      border-bottom: 1px solid rgba(45,63,94,0.5);
     }
-    .step-icon { font-size: 15px; min-width: 22px; }
+    .exec-step:last-child { border-bottom: none; }
+    .step-icon { font-size: 15px; min-width: 22px; text-align: center; }
+    .step-body { flex: 1; }
     .step-label { color: var(--text); }
     .step-label.muted { color: var(--muted); }
     .step-hash {
-      font-family: var(--mono);
-      font-size: 11px;
+      font-family: var(--mono); font-size: 11px;
       color: var(--indigo-light);
-      margin-left: 6px;
       background: var(--indigo-glow);
-      padding: 1px 6px;
-      border-radius: 4px;
+      padding: 1px 7px; border-radius: 4px;
+      border: 1px solid rgba(99,102,241,0.25);
+      margin-top: 3px; display: inline-block;
     }
     .progress-bar {
-      height: 3px;
-      background: var(--surface2);
-      border-radius: 2px;
-      margin-top: 16px;
-      overflow: hidden;
+      height: 3px; background: var(--surface2); border-radius: 2px;
+      margin-top: 16px; overflow: hidden;
     }
     .progress-fill {
       height: 100%;
       background: linear-gradient(90deg, var(--indigo), var(--indigo-light));
-      border-radius: 2px;
-      width: 60%;
+      border-radius: 2px; width: 60%;
       animation: shimmer 1.6s ease-in-out infinite;
     }
-    @keyframes shimmer {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.5; }
-    }
+    @keyframes shimmer { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
     .spinner { animation: spin 1.2s linear infinite; display: inline-block; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
@@ -297,14 +297,11 @@
       display: flex; align-items: center; justify-content: space-between;
       background: linear-gradient(90deg, rgba(79,70,229,0.06) 0%, transparent 80%);
     }
-    .panel-title { font-size: 13px; font-weight: 600; }
-    .panel-badge {
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 999px;
-      padding: 2px 10px;
-      font-size: 11px;
-      color: var(--muted);
+    .panel-title  { font-size: 13px; font-weight: 600; }
+    .panel-badge  {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 999px; padding: 2px 10px;
+      font-size: 11px; color: var(--muted);
     }
 
     /* ── Memo Card ───────────────────────────────────────────────────────── */
@@ -319,24 +316,19 @@
       display: flex; align-items: flex-start; gap: 10px; margin-bottom: 12px;
     }
     .memo-avatar {
-      width: 28px; height: 28px;
-      border-radius: 50%;
+      width: 28px; height: 28px; border-radius: 50%;
       background: linear-gradient(135deg, var(--indigo), var(--emerald));
       display: flex; align-items: center; justify-content: center;
-      font-size: 13px;
-      flex-shrink: 0;
-      margin-top: 1px;
+      font-size: 13px; flex-shrink: 0; margin-top: 1px;
       box-shadow: 0 0 8px rgba(79,70,229,0.4);
     }
-    .memo-author { font-size: 12px; font-weight: 600; margin-bottom: 1px; }
+    .memo-info     { flex: 1; min-width: 0; }
+    .memo-author   { font-size: 12px; font-weight: 600; margin-bottom: 1px; }
     .memo-timestamp { font-size: 11px; color: var(--muted); }
     .memo-chain-link {
-      font-size: 11px;
-      color: var(--indigo-light);
-      text-decoration: none;
-      margin-left: auto;
-      font-family: var(--mono);
-      white-space: nowrap;
+      font-size: 11px; color: var(--indigo-light);
+      text-decoration: none; margin-left: auto;
+      font-family: var(--mono); white-space: nowrap;
       padding: 2px 8px;
       background: var(--indigo-glow);
       border-radius: 5px;
@@ -344,17 +336,21 @@
       transition: background 0.15s;
     }
     .memo-chain-link:hover { background: rgba(99,102,241,0.25); }
+
+    /* The hero component — CFO memo text */
     .memo-text {
       font-family: Georgia, 'Times New Roman', serif;
       font-size: 13.5px;
-      line-height: 1.7;
+      line-height: 1.75;
       color: #C8D4E8;
-      background: rgba(13, 21, 38, 0.7);
+      background: rgba(13, 21, 38, 0.75);
       border-left: 3px solid var(--indigo);
-      padding: 13px 16px;
-      border-radius: 0 8px 8px 0;
+      padding: 14px 17px;
+      border-radius: 0 9px 9px 0;
       margin-bottom: 12px;
     }
+    .memo-text strong { color: var(--emerald); }
+
     .memo-mini-bar {
       display: flex; gap: 8px; align-items: center; margin-bottom: 10px;
     }
@@ -365,58 +361,85 @@
     .mini-seg-a { background: var(--indigo); width: 70%; }
     .mini-seg-b { background: var(--emerald); width: 30%; }
     .mini-label { font-size: 11px; color: var(--muted); white-space: nowrap; }
+
     .memo-footer { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-    .status-chip {
-      padding: 3px 10px;
-      border-radius: 999px;
-      font-size: 11px;
-      font-weight: 600;
+    .chip {
+      padding: 3px 10px; border-radius: 999px;
+      font-size: 11px; font-weight: 600;
     }
     .chip-green { background: var(--emerald-soft); color: var(--emerald); }
     .chip-amber { background: var(--amber-soft); color: var(--amber); }
     .chip-muted { background: var(--surface2); color: var(--muted); border: 1px solid var(--border); }
-    .memo-proof-link {
-      font-size: 11px;
-      color: var(--indigo-light);
-      text-decoration: none;
-      margin-left: auto;
-      opacity: 0.85;
+    .proof-link {
+      font-size: 11px; color: var(--indigo-light);
+      text-decoration: none; margin-left: auto;
     }
-    .memo-proof-link:hover { opacity: 1; text-decoration: underline; }
+    .proof-link:hover { text-decoration: underline; }
 
+    /* Collapsed memo */
     .memo-card.collapsed .memo-text,
     .memo-card.collapsed .memo-mini-bar,
     .memo-card.collapsed .memo-footer { display: none; }
-    .memo-collapsed-preview {
-      font-size: 12px; color: var(--muted); font-style: italic; line-height: 1.5;
-    }
-    .memo-expand-link {
+    .memo-preview { font-size: 12px; color: var(--muted); font-style: italic; line-height: 1.5; }
+    .expand-link {
       color: var(--indigo-light); margin-left: 6px; font-size: 11px;
-      text-decoration: none; font-style: normal;
+      text-decoration: none; font-style: normal; cursor: pointer;
     }
-    .memo-expand-link:hover { text-decoration: underline; }
+    .expand-link:hover { text-decoration: underline; }
 
     /* ── Employee Table ──────────────────────────────────────────────────── */
-    .employee-table { width: 100%; border-collapse: collapse; }
-    .employee-table th {
+    .emp-table { width: 100%; border-collapse: collapse; }
+    .emp-table th {
       font-size: 10.5px; color: var(--muted); text-transform: uppercase;
       letter-spacing: 0.7px; padding: 10px 20px; text-align: left;
       border-bottom: 1px solid var(--border); font-weight: 600;
     }
-    .employee-table td {
+    .emp-table td {
       padding: 12px 20px; border-bottom: 1px solid var(--border); font-size: 13px;
     }
-    .employee-table tr:last-child td { border-bottom: none; }
-    .employee-table tbody tr { transition: background 0.15s; }
-    .employee-table tbody tr:hover { background: rgba(79,70,229,0.04); }
+    .emp-table tr:last-child td { border-bottom: none; }
+    .emp-table tbody tr { transition: background 0.15s; }
+    .emp-table tbody tr:hover { background: rgba(79,70,229,0.04); }
     .emp-name { font-weight: 500; margin-bottom: 2px; }
     .emp-addr { font-family: var(--mono); font-size: 11px; color: var(--muted); }
-    .salary-amount { font-variant-numeric: tabular-nums; font-weight: 700; color: var(--text); }
+    .salary   { font-variant-numeric: tabular-nums; font-weight: 700; }
     .goplus-footer {
       padding: 11px 20px; border-top: 1px solid var(--border);
-      font-size: 12px; color: var(--emerald); display: flex;
-      align-items: center; gap: 6px; font-weight: 500;
+      font-size: 12px; color: var(--emerald);
+      display: flex; align-items: center; gap: 6px; font-weight: 500;
     }
+
+    /* ── Payday Panel ────────────────────────────────────────────────────── */
+    .payday-panel {
+      background: var(--surface);
+      border: 1px solid var(--amber);
+      border-radius: 14px;
+      padding: 20px 24px;
+      margin-bottom: 18px;
+      display: none;
+      box-shadow: 0 0 0 3px rgba(245,158,11,0.1), 0 8px 32px rgba(0,0,0,0.3);
+    }
+    .payday-panel.visible { display: block; }
+    .payday-title {
+      font-size: 13px; font-weight: 600; margin-bottom: 14px;
+      color: var(--amber); display: flex; align-items: center; gap: 8px;
+    }
+    .payday-row {
+      display: flex; align-items: center; gap: 12px;
+      padding: 9px 14px; background: rgba(13,21,38,0.6);
+      border-radius: 8px; margin-bottom: 8px; font-size: 12.5px;
+    }
+    .payday-name  { font-weight: 500; min-width: 100px; }
+    .payday-addr  { font-family: var(--mono); font-size: 11px; color: var(--muted); flex: 1; }
+    .payday-chip-ok  { background: var(--emerald-soft); color: var(--emerald); padding: 2px 8px; border-radius: 5px; font-size: 11px; font-weight: 600; }
+    .payday-amount   { font-weight: 700; font-variant-numeric: tabular-nums; margin-left: auto; }
+    .payday-total {
+      margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border);
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 13px;
+    }
+    .payday-total-label { color: var(--muted); }
+    .payday-total-value { font-weight: 700; font-size: 15px; }
 
     /* ── Footer ──────────────────────────────────────────────────────────── */
     .page-footer {
@@ -435,7 +458,7 @@
       border-radius: 12px; padding: 14px 18px;
       font-size: 12.5px; display: flex; align-items: center; gap: 12px;
       box-shadow: 0 6px 28px rgba(0,0,0,0.45), 0 0 0 1px rgba(16,185,129,0.15);
-      z-index: 200;
+      z-index: 200; min-width: 280px;
       opacity: 0; transform: translateY(8px);
       transition: opacity 0.3s, transform 0.3s;
     }
@@ -444,36 +467,13 @@
     .toast-text { color: var(--text); font-weight: 500; }
     .toast-hash { font-family: var(--mono); font-size: 11px; color: var(--emerald); margin-top: 2px; }
 
-    /* ── Demo controls (visible only in mockup) ──────────────────────────── */
-    .demo-bar {
-      background: rgba(79,70,229,0.1);
-      border: 1px dashed rgba(99,102,241,0.4);
-      border-radius: 10px;
-      padding: 10px 16px;
-      margin-bottom: 16px;
-      display: flex; align-items: center; gap: 12px;
-      font-size: 12px; color: var(--muted);
-    }
-    .demo-bar span { font-weight: 600; color: var(--indigo-light); }
-    .demo-btn {
-      background: var(--indigo);
-      color: white;
-      border: none;
-      border-radius: 6px;
-      padding: 5px 12px;
-      font-size: 11.5px;
-      font-weight: 600;
-      cursor: pointer;
-    }
-    .demo-btn.off { background: var(--surface2); color: var(--muted); border: 1px solid var(--border); }
-
     /* ── Responsive ──────────────────────────────────────────────────────── */
     @media (max-width: 960px) {
       .stat-grid { grid-template-columns: repeat(2, 1fr); }
-      .two-col { grid-template-columns: 1fr; }
+      .two-col   { grid-template-columns: 1fr; }
     }
     @media (max-width: 560px) {
-      .main { padding: 14px 16px; }
+      .main   { padding: 14px 16px; }
       .topbar { padding: 12px 16px; }
       .stat-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
     }
@@ -481,7 +481,7 @@
 </head>
 <body>
 
-<!-- TOPBAR -->
+<!-- ── TOPBAR ──────────────────────────────────────────────────────────────── -->
 <nav class="topbar">
   <div class="topbar-brand">
     <div class="brand-icon">🏦</div>
@@ -501,15 +501,16 @@
 
 <div class="main">
 
-  <!-- DEMO CONTROLS (mockup only) -->
+  <!-- ── DEMO CONTROLS (mockup only) ──────────────────────────────────────── -->
   <div class="demo-bar">
-    <span>Mockup controls:</span>
+    <span class="label">Mockup controls:</span>
     <button class="demo-btn" onclick="toggleExec()">Toggle Agent Running</button>
-    <button class="demo-btn off" onclick="showToast()">Show Tx Toast</button>
-    <span style="margin-left:auto; font-size:11px;">Not in production UI</span>
+    <button class="demo-btn off" onclick="togglePayday()">Toggle Payday Panel</button>
+    <button class="demo-btn off" onclick="showToast('✅', 'Memo committed on-chain', '0x7f3a1b…d9c2e4')">TX Toast</button>
+    <span class="note">Not in production UI</span>
   </div>
 
-  <!-- STAT CARDS -->
+  <!-- ── STAT CARDS ─────────────────────────────────────────────────────── -->
   <div class="stat-grid">
     <div class="stat-card">
       <div class="stat-label">Total Pool</div>
@@ -533,11 +534,11 @@
     </div>
   </div>
 
-  <!-- ALLOCATION BAR -->
+  <!-- ── ALLOCATION BAR ─────────────────────────────────────────────────── -->
   <div class="allocation-section">
     <div class="alloc-header">
       <span class="section-title">Current Allocation</span>
-      <span class="chip-muted status-chip">Rebalanced 2h ago by AI agent · memo #3</span>
+      <span class="badge-small">Rebalanced 2h ago · memo #3 on-chain</span>
     </div>
     <div class="alloc-bar">
       <div class="alloc-seg-a"></div>
@@ -559,61 +560,97 @@
     </div>
   </div>
 
-  <!-- ACTION ROW -->
+  <!-- ── ACTION ROW ─────────────────────────────────────────────────────── -->
   <div class="action-row">
     <button class="btn btn-primary" onclick="toggleExec()">
-      <span class="btn-icon">⚡</span>
-      Run AI Rebalance
+      <span class="btn-icon">⚡</span> Run AI Rebalance
     </button>
-    <button class="btn btn-secondary">
-      <span class="btn-icon">💸</span>
-      Execute Payday
+    <button class="btn btn-success" onclick="togglePayday()">
+      <span class="btn-icon">💸</span> Execute Payday
     </button>
     <button class="btn btn-ghost">
-      <span class="btn-icon">👤</span>
-      Add Employee
+      <span class="btn-icon">👤</span> Add Employee
     </button>
     <button class="btn btn-ghost">
-      <span class="btn-icon">💰</span>
-      Deposit USDC
+      <span class="btn-icon">💰</span> Deposit USDC
     </button>
   </div>
 
-  <!-- LIVE EXECUTION PANEL (hidden by default) -->
+  <!-- ── AGENT EXECUTION PANEL ──────────────────────────────────────────── -->
   <div class="exec-overlay" id="exec-overlay">
     <div class="exec-title">
       <span class="spinner">⚙️</span>
-      AI Agent — Rebalance Cycle Running
+      AI Treasurer Agent — Rebalance Cycle Running
     </div>
-    <div class="exec-step">
-      <span class="step-icon">✅</span>
-      <span class="step-label">Vault state read — $50,000 USDC total assets</span>
-    </div>
-    <div class="exec-step">
-      <span class="step-icon">✅</span>
-      <span class="step-label">x402 yield data purchased — $0.001 USDC paid</span>
-      <span class="step-hash">0x7a3c…d291</span>
-    </div>
-    <div class="exec-step">
-      <span class="step-icon">✅</span>
-      <span class="step-label">CFO memo generated by <strong>claude-sonnet-4-6</strong></span>
-    </div>
-    <div class="exec-step">
-      <span class="step-icon"><span class="spinner">⏳</span></span>
-      <span class="step-label">Committing memo on-chain (emitMemo)…</span>
-      <span class="step-hash">pending…</span>
-    </div>
-    <div class="exec-step">
-      <span class="step-icon" style="color:var(--muted);">○</span>
-      <span class="step-label muted">Rebalance tx — awaiting memo confirmation</span>
+    <div class="exec-steps">
+      <div class="exec-step">
+        <span class="step-icon">✅</span>
+        <div class="step-body">
+          <div class="step-label">Vault state read — $50,000 USDC total assets</div>
+        </div>
+      </div>
+      <div class="exec-step">
+        <span class="step-icon">✅</span>
+        <div class="step-body">
+          <div class="step-label">x402 yield data purchased — $0.001 USDC paid</div>
+          <div class="step-hash">payment: 0x7a3c…d291</div>
+        </div>
+      </div>
+      <div class="exec-step">
+        <span class="step-icon">✅</span>
+        <div class="step-body">
+          <div class="step-label">CFO memo generated by <strong>claude-sonnet-4-6</strong></div>
+          <div style="font-size:11.5px;color:var(--muted);margin-top:4px;font-style:italic;">"70/30 split recommended. Daily yield: $12.47. GoPlus: clean. PROCEED."</div>
+        </div>
+      </div>
+      <div class="exec-step">
+        <span class="step-icon"><span class="spinner">⏳</span></span>
+        <div class="step-body">
+          <div class="step-label">Committing memo on-chain (emitMemo)…</div>
+          <div class="step-hash">pending…</div>
+        </div>
+      </div>
+      <div class="exec-step">
+        <span class="step-icon" style="color:var(--muted);">○</span>
+        <div class="step-body">
+          <div class="step-label muted">Rebalance tx — awaiting memo confirmation</div>
+        </div>
+      </div>
     </div>
     <div class="progress-bar"><div class="progress-fill"></div></div>
   </div>
 
-  <!-- TWO-COLUMN -->
+  <!-- ── PAYDAY PANEL ───────────────────────────────────────────────────── -->
+  <div class="payday-panel" id="payday-panel">
+    <div class="payday-title">💸 Payday Execution — 3 Employees</div>
+    <div class="payday-row">
+      <span class="payday-name">Alice Chen</span>
+      <span class="payday-addr">0xA1b2…C3d4</span>
+      <span class="payday-chip-ok">🛡️ GoPlus clean</span>
+      <span class="payday-amount">$5,000</span>
+    </div>
+    <div class="payday-row">
+      <span class="payday-name">Bob Martinez</span>
+      <span class="payday-addr">0xE5f6…G7h8</span>
+      <span class="payday-chip-ok">🛡️ GoPlus clean</span>
+      <span class="payday-amount">$3,500</span>
+    </div>
+    <div class="payday-row">
+      <span class="payday-name">Carol Kim</span>
+      <span class="payday-addr">0xI9j0…K1l2</span>
+      <span class="payday-chip-ok">🛡️ GoPlus clean</span>
+      <span class="payday-amount">$4,200</span>
+    </div>
+    <div class="payday-total">
+      <span class="payday-total-label">Total to distribute</span>
+      <span class="payday-total-value">$12,700 USDC · 3 transfers</span>
+    </div>
+  </div>
+
+  <!-- ── TWO-COLUMN ─────────────────────────────────────────────────────── -->
   <div class="two-col">
 
-    <!-- CFO MEMO FEED -->
+    <!-- ── CFO MEMO FEED ─────────────────────────────────────────────────── -->
     <div class="panel">
       <div class="panel-header">
         <span class="panel-title">🤖 AI CFO Memo Feed</span>
@@ -624,16 +661,16 @@
       <div class="memo-card">
         <div class="memo-meta">
           <div class="memo-avatar">🤖</div>
-          <div style="flex:1; min-width:0;">
+          <div class="memo-info">
             <div class="memo-author">AI Treasurer Agent</div>
             <div class="memo-timestamp">2026-06-18 · 09:14 UTC</div>
           </div>
           <a href="#" class="memo-chain-link">0xabc…def1 ↗</a>
         </div>
         <div class="memo-text">
-          "Source A currently yields <strong style="color:#10B981;">9.1% APY</strong> versus Source B at 7.4%.
-          I recommend a <strong>70/30 split</strong> to maximize yield while maintaining a 30% liquidity
-          buffer ahead of payday in 14 days. Estimated daily yield on $50,000: <strong style="color:#10B981;">$12.47</strong>.
+          "Source A currently yields <strong>9.1% APY</strong> versus Source B at 7.4%.
+          I recommend a <strong>70/30 split</strong> to maximize yield while maintaining a 30% liquidity buffer
+          ahead of payday in 14 days. Estimated daily yield on $50,000: <strong>$12.47</strong>.
           Gas cost for this rebalance: $0.003 — covered by yield in under 45 minutes.
           GoPlus security check on both protocol addresses returned no malicious flags.
           <br><br>
@@ -648,51 +685,82 @@
           <span class="mini-label">B 30%</span>
         </div>
         <div class="memo-footer">
-          <span class="status-chip chip-green">✅ Approved by agent</span>
-          <a href="#" class="memo-proof-link">View on-chain proof ↗</a>
+          <span class="chip chip-green">✅ Approved by agent</span>
+          <a href="#" class="proof-link">View on-chain proof ↗</a>
         </div>
       </div>
 
       <!-- MEMO 2 — COLLAPSED -->
-      <div class="memo-card collapsed">
+      <div class="memo-card collapsed" id="memo2">
         <div class="memo-meta">
           <div class="memo-avatar">🤖</div>
-          <div style="flex:1; min-width:0;">
+          <div class="memo-info">
             <div class="memo-author">AI Treasurer Agent</div>
             <div class="memo-timestamp">2026-06-11 · 09:02 UTC</div>
           </div>
           <a href="#" class="memo-chain-link">0x789…a312 ↗</a>
         </div>
-        <div class="memo-collapsed-preview">
-          "Source A APY dropped from 11.2% to 9.1% due to increased liquidity inflows. Reducing allocation from 80% to 70%…"
-          <a href="#" class="memo-expand-link" onclick="this.closest('.memo-card').classList.remove('collapsed'); return false;">Read full memo ↗</a>
+        <div class="memo-text">
+          "Source A APY dropped from 11.2% to 9.1% due to increased liquidity inflows.
+          Reducing Source A allocation from 80% to 70% to maintain diversification.
+          No change to Source B. Expected impact on daily yield: −$0.82.
+          Acceptable trade-off for reduced concentration risk.
+          <br><br>
+          <strong>Recommendation: PROCEED with rebalance.</strong>"
+        </div>
+        <div class="memo-mini-bar">
+          <span class="mini-label">A 70%</span>
+          <div class="mini-bar-inner">
+            <div class="mini-seg-a"></div>
+            <div class="mini-seg-b"></div>
+          </div>
+          <span class="mini-label">B 30%</span>
+        </div>
+        <div class="memo-footer">
+          <span class="chip chip-green">✅ Approved by agent</span>
+          <a href="#" class="proof-link">View on-chain proof ↗</a>
+        </div>
+        <div class="memo-preview">
+          "Source A APY dropped from 11.2% to 9.1%…"
+          <span class="expand-link" onclick="document.getElementById('memo2').classList.remove('collapsed')">Read full memo ↗</span>
         </div>
       </div>
 
-      <!-- MEMO 3 — COLLAPSED (PAYDAY) -->
-      <div class="memo-card collapsed">
+      <!-- MEMO 3 — COLLAPSED (PAYDAY MEMO) -->
+      <div class="memo-card collapsed" id="memo3">
         <div class="memo-meta">
           <div class="memo-avatar">🤖</div>
-          <div style="flex:1; min-width:0;">
+          <div class="memo-info">
             <div class="memo-author">AI Treasurer Agent</div>
             <div class="memo-timestamp">2026-06-04 · 08:55 UTC · <span style="color:var(--amber);">PAYDAY</span></div>
           </div>
           <a href="#" class="memo-chain-link">0x234…bc01 ↗</a>
         </div>
-        <div class="memo-collapsed-preview">
-          "Payday memo: withdrawing $12,700 from yield sources. GoPlus: all 3 employee addresses verified clean…"
-          <a href="#" class="memo-expand-link" onclick="this.closest('.memo-card').classList.remove('collapsed'); return false;">Read full memo ↗</a>
+        <div class="memo-text">
+          "Payday cycle initiated. Withdrawing $12,700 USDC from yield sources for salary distribution.
+          GoPlus security checks passed for all 3 employee addresses.
+          Remaining $37,300 stays deployed in Source A/B during settlement.
+          <br><br>
+          <strong>Recommendation: PROCEED with payroll distribution.</strong>"
+        </div>
+        <div class="memo-footer">
+          <span class="chip chip-amber">💸 Payday executed</span>
+          <a href="#" class="proof-link">View on-chain proof ↗</a>
+        </div>
+        <div class="memo-preview">
+          "Payday cycle initiated. Withdrawing $12,700 USDC…"
+          <span class="expand-link" onclick="document.getElementById('memo3').classList.remove('collapsed')">Read full memo ↗</span>
         </div>
       </div>
     </div>
 
-    <!-- EMPLOYEE TABLE -->
+    <!-- ── EMPLOYEE TABLE ────────────────────────────────────────────────── -->
     <div class="panel">
       <div class="panel-header">
         <span class="panel-title">👥 Employees</span>
         <span class="panel-badge">3 active · next payday 14d</span>
       </div>
-      <table class="employee-table">
+      <table class="emp-table">
         <thead>
           <tr>
             <th>Employee</th>
@@ -706,33 +774,33 @@
               <div class="emp-name">Alice Chen</div>
               <div class="emp-addr">0xA1b2…C3d4</div>
             </td>
-            <td><span class="salary-amount">$5,000</span></td>
-            <td><span class="status-chip chip-green">✅ Scheduled</span></td>
+            <td><span class="salary">$5,000</span></td>
+            <td><span class="chip chip-green">✅ Scheduled</span></td>
           </tr>
           <tr>
             <td>
               <div class="emp-name">Bob Martinez</div>
               <div class="emp-addr">0xE5f6…G7h8</div>
             </td>
-            <td><span class="salary-amount">$3,500</span></td>
-            <td><span class="status-chip chip-green">✅ Scheduled</span></td>
+            <td><span class="salary">$3,500</span></td>
+            <td><span class="chip chip-green">✅ Scheduled</span></td>
           </tr>
           <tr>
             <td>
               <div class="emp-name">Carol Kim</div>
               <div class="emp-addr">0xI9j0…K1l2</div>
             </td>
-            <td><span class="salary-amount">$4,200</span></td>
-            <td><span class="status-chip chip-green">✅ Scheduled</span></td>
+            <td><span class="salary">$4,200</span></td>
+            <td><span class="chip chip-green">✅ Scheduled</span></td>
           </tr>
-          <tr>
+          <tr style="opacity:0.45;">
             <td>
               <div class="emp-name" style="color:var(--muted);">+ Add employee</div>
               <div class="emp-addr">enter wallet address</div>
             </td>
             <td></td>
             <td>
-              <button class="btn btn-ghost" style="padding:5px 12px;font-size:11.5px;">+ Add</button>
+              <button class="btn btn-ghost" style="padding:4px 11px;font-size:11.5px;">+ Add</button>
             </td>
           </tr>
         </tbody>
@@ -742,47 +810,55 @@
       </div>
     </div>
 
-  </div>
+  </div><!-- /.two-col -->
 
-  <!-- FOOTER -->
+  <!-- ── FOOTER ─────────────────────────────────────────────────────────── -->
   <div class="page-footer">
     <div>AI-Treasurer Payroll Vault · Base Sepolia (chain 84532) · 2026</div>
     <div class="footer-links">
-      <a href="#" id="contract-link">Contract ↗</a>
+      <a href="#">Contract ↗</a>
       <a href="https://github.com/you/ai-treasurer-vault" target="_blank" rel="noopener">GitHub ↗</a>
       <a href="https://x402.org" target="_blank" rel="noopener">x402 ↗</a>
     </div>
   </div>
 
-</div>
+</div><!-- /.main -->
 
-<!-- TOAST -->
+<!-- ── TOAST ──────────────────────────────────────────────────────────────── -->
 <div class="toast" id="toast">
-  <span class="toast-icon">✅</span>
+  <span class="toast-icon" id="toast-icon">✅</span>
   <div>
-    <div class="toast-text">Memo committed on-chain</div>
-    <div class="toast-hash">0x7f3a1b…d9c2e4 · <a href="#" style="color:var(--emerald);">BaseScan ↗</a></div>
+    <div class="toast-text" id="toast-text">Transaction confirmed</div>
+    <div class="toast-hash" id="toast-hash">0x7f3a1b…d9c2e4 · <a href="#" style="color:var(--emerald);">BaseScan ↗</a></div>
   </div>
 </div>
 
 <script>
-  // Toggle execution overlay
+  // ── Exec overlay ─────────────────────────────────────────────────────────
   function toggleExec() {
-    const overlay = document.getElementById('exec-overlay');
-    overlay.classList.toggle('visible');
+    document.getElementById('exec-overlay').classList.toggle('visible');
   }
 
-  // Show toast briefly
+  // ── Payday panel ─────────────────────────────────────────────────────────
+  function togglePayday() {
+    document.getElementById('payday-panel').classList.toggle('visible');
+  }
+
+  // ── Toast ─────────────────────────────────────────────────────────────────
   let toastTimer;
-  function showToast() {
-    const toast = document.getElementById('toast');
-    toast.classList.add('visible');
+  function showToast(icon, text, hash) {
+    const el   = document.getElementById('toast');
+    document.getElementById('toast-icon').textContent = icon  || '✅';
+    document.getElementById('toast-text').textContent = text  || 'Transaction confirmed';
+    document.getElementById('toast-hash').innerHTML   = (hash || '0xdead…beef')
+      + ' · <a href="#" style="color:var(--emerald);">BaseScan ↗</a>';
+    el.classList.add('visible');
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => toast.classList.remove('visible'), 4000);
+    toastTimer = setTimeout(() => el.classList.remove('visible'), 4500);
   }
 
-  // Auto-show toast after 1.2s (demo effect)
-  setTimeout(showToast, 1200);
+  // Auto-demo effect: show toast after 1.2s
+  setTimeout(() => showToast('✅', 'Memo committed on-chain', '0x7f3a1b…d9c2e4'), 1200);
 </script>
 </body>
 </html>

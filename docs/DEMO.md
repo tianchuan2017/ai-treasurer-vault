@@ -67,7 +67,7 @@ npm run agent:cycle
 
 **[Switch to frontend]**
 
-> "The dashboard updates in real time — vault now shows 35,000 USDC in Source A, 15,000 USDC in Source B. Projected daily yield: $12.47."
+> "The dashboard updates in real time — vault now shows 28,000 USDC in Source A, 12,000 USDC in Source B (80% deployed, 20% liquidity buffer). Projected daily yield: $12.47."
 
 *The CFO Memo Feed section shows the new memo card with timestamp and on-chain link.*
 

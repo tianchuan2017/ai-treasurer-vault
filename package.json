@@ -1,0 +1,20 @@
+{
+  "name": "ai-treasurer-vault",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AI-Treasurer Payroll Vault — USDC payroll vault that earns yield until payday, with AI-generated CFO memos committed on-chain before every rebalance.",
+  "workspaces": ["agent", "app"],
+  "scripts": {
+    "install:all":     "npm install --prefix agent && npm install --prefix app",
+    "server":          "npm --prefix agent run server",
+    "agent:cycle":     "npm --prefix agent run agent:cycle",
+    "agent:payday":    "npm --prefix agent run agent:payday",
+    "agent:demo":      "npm --prefix agent run agent:demo",
+    "dev:frontend":    "npm --prefix app  run dev",
+    "build:contracts": "cd contracts && forge build",
+    "test:contracts":  "cd contracts && forge test -vv"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

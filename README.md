@@ -30,7 +30,7 @@ Claude generates CFO memo:
          ↓
 emitMemo(keccak256(memo), memoText)  ← on-chain, immutable, before any move
          ↓
-rebalance([sourceA, sourceB], [35_000e6, 15_000e6])
+rebalance([sourceA, sourceB], [28_000e6, 12_000e6])   // 80% cap respected
          ↓
 Next payday: GoPlus sweep → executePayroll() → 3 salary transfers in one block
 ```
@@ -123,7 +123,7 @@ cp .env.example .env
 cd contracts
 forge install   # pulls openzeppelin-contracts and forge-std
 forge build     # should compile with zero warnings
-forge test      # all 10 tests should pass
+forge test      # all 13 tests pass
 forge script script/Deploy.s.sol \
   --rpc-url https://sepolia.base.org \
   --private-key $PRIVATE_KEY \
@@ -182,7 +182,7 @@ npm run dev             # http://localhost:3000
 ## Verification checklist
 
 - [x] `forge build` — zero errors
-- [x] `forge test` — all tests pass (10/10)
+- [x] `forge test` — all tests pass (13/13)
 - [x] No hardcoded private keys — all via `process.env`
 - [x] `.env.example` complete with all required vars
 - [x] `.gitignore` excludes `.env`, `node_modules`, `contracts/out`

@@ -16,14 +16,17 @@ export function Providers({ children }: { children: React.ReactNode }) {
       appId={PRIVY_APP_ID}
       config={{
         appearance: {
-          theme: 'dark',
+          theme:       'dark',
           accentColor: '#4F46E5',
         },
-        loginMethods: ['email', 'wallet'],
-        defaultChain: baseSepolia,
+        loginMethods:   ['email', 'wallet'],
+        defaultChain:   baseSepolia,
         supportedChains: [baseSepolia],
+        // Privy 3.x: embedded wallet creation on login
         embeddedWallets: {
-          createOnLogin: 'users-without-wallets',
+          ethereum: {
+            createOnLogin: 'users-without-wallets',
+          },
         },
       }}
     >
